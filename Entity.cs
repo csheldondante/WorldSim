@@ -3,7 +3,6 @@
 namespace CSD{
 
 	public interface IEntity{
-		//test
 		T GetComponent<T>() where T : IComponent;
 		T GetComponent<T>(IComparer<T> comparator) where T : IComponent;
 		List<T> GetComponents<T>() where T : IComponent;
