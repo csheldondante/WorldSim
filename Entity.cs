@@ -2,21 +2,19 @@
 
 namespace CSD{
 
-	public interface IEntity<EV>{
-		T GetComponent<T>() where T : IComponent<EV>;
-		T GetComponent<T>(IComparer<T> comparator) where T : IComponent<EV>;
-		List<T> GetComponents<T>() where T : IComponent<EV>;
-		bool AddComponent<T> (T component) where T :IComponent<EV>;
+	public interface IEntity{
+		T GetComponent<T>() where T : IComponent;
+		T GetComponent<T>(IComparer<T> comparator) where T : IComponent;
+		List<T> GetComponents<T>() where T : IComponent;
+		bool AddComponent<T> (T component) where T :IComponent;
 		bool IsDestroyed();
-		bool HasComponent<T> () where T : IComponent<EV>;
+		bool HasComponent<T> () where T : IComponent;
 		void SetDestroyed(bool destroyed);
-		EV GetView ();
-		void SetView(EV view);
 	}
 
-	public interface IComponent<EV>{
-		IEntity<EV> GetEntity();
-		bool SetEntity(IEntity<EV> entity);
+	public interface IComponent{
+		IEntity GetEntity();
+		bool SetEntity(IEntity entity);
 	}
 
 	public interface IUpdatable{
@@ -24,8 +22,8 @@ namespace CSD{
 	}
 
 
-	public class Entity<EV> : IEntity<EV> {
-		private List<IComponent<EV>> components = new List<IComponent<EV>> ();
+	public class Entity<EV> : IEntity {
+		private List<IComponent> components = new List<IComponent> ();
 		private EV view;
 		private bool isDestroyed = false;
 		public bool IsDestroyed() {return isDestroyed;}
@@ -34,11 +32,11 @@ namespace CSD{
 		public Entity(){
 		}
 
-		public bool HasComponent<T>() where T : IComponent<EV>{
+		public bool HasComponent<T>() where T : IComponent{
 			return GetComponent<T> () != null;
 		}
 
-		public T GetComponent<T>() where T : IComponent<EV>{
+		public T GetComponent<T>() where T : IComponent{
 			foreach (var component in components) {
 				if (component.GetType () == typeof(T))
 					return (T)component;
@@ -46,12 +44,12 @@ namespace CSD{
 			return default(T);
 		}
 
-		public T GetOrCreateComponent<T>() where T : IComponent<EV>, new() {
+		public T GetOrCreateComponent<T>() where T : IComponent, new() {
 			foreach (var component in components) {
 				if (component.GetType () == typeof(T))
 					return (T)component;
 			}
-			if (typeof(T).IsSubclassOf(typeof(Component<EV>))) {
+			if (typeof(T).IsSubclassOf(typeof(Component))) {
 				var newComponent = new T();
 				this.AddComponent(newComponent);
 				return newComponent;
@@ -59,7 +57,7 @@ namespace CSD{
 			return default(T);
 		}
 
-		public T GetComponent<T>(IComparer<T> comparator) where T : IComponent<EV> {
+		public T GetComponent<T>(IComparer<T> comparator) where T : IComponent {
 			List<T> componentsOfType = GetComponents<T> ();
 			if (componentsOfType.Count < 1)
 				return default(T);
@@ -67,7 +65,7 @@ namespace CSD{
 			return componentsOfType[0];
 		}
 
-		public List<T> GetComponents<T>() where T : IComponent<EV> {
+		public List<T> GetComponents<T>() where T : IComponent {
 			List<T> components = new List<T> ();
 			foreach (var component in components) {
 				if (component.GetType () == typeof(T))
@@ -76,7 +74,7 @@ namespace CSD{
 			return components;
 		}
 
-		public bool AddComponent<T> (T component) where T :IComponent<EV>{
+		public bool AddComponent<T> (T component) where T :IComponent{
 			if (component.GetEntity () != null)
 				return false;
 			component.SetEntity (this);
@@ -95,12 +93,12 @@ namespace CSD{
 
 	}
 
-	public class Component<EV> : IComponent<EV>{
-		private IEntity<EV> entity;
-		public IEntity<EV> GetEntity (){
+	public class Component : IComponent{
+		private IEntity entity;
+		public IEntity GetEntity (){
 			return entity;
 		}
-		public bool SetEntity(IEntity<EV> entity){
+		public bool SetEntity(IEntity entity){
 			if (this.entity != null)
 				return false;
 			this.entity = entity;
@@ -109,13 +107,13 @@ namespace CSD{
 		public class ComponentParams{
 			public int randomSeed;
 		}
-		public Component (IEntity<EV> entity) {
+		public Component (IEntity entity) {
 			entity.AddComponent(this);
 		}
 		public Component () {}
 	}
 
-	public class UpdateableComponent<EV,WV> : Component<EV>, IUpdatable{
+	public class UpdateableComponent : Component, IUpdatable{
 		public UpdateableComponent () {
 		}
 
